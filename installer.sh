@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 ##################################################################################################
 #
 #	FastCP Installer
@@ -12,37 +11,62 @@
 #
 ##################################################################################################
 
-##################################################################################################
-#
-# Variables
+echo "### Welcome to the FastCP+ install ###"
+echo "Please enter your Hostname of desire:" 
 
-HOSTNAME=$(uname -n)
-OS=$(lsb_release -d | awk -F"\t" '{print $2}' | awk -F" " '{print $1}')
+read HOSTNAME
 
-##################################################################################################
+if [ "$HOSTNAME" == "" ]; 
+	then
+		HOSTNAME=`uname -n`
+fi
 
-if [ "$EUID" -ne 0 ]
-	then echo "This script must be run as root"
-	exit
+echo "Your Hostname of desire is now set to $HOSTNAME"
+
+# Getting first variable from the operation system
+OS=`lsb_release -d | awk -F"\t" '{print $2}' | awk -F" " '{print $1}'`
+
+# Check if the script is executed as root
+if [ "$EUID" -ne 0 ]; 
+	then 
+    	echo "################ FastCP+ ##################"
+    	echo "### You need to run this script as root ###"
+    	echo "###########################################"
+    exit
+else
+    echo "######################### FastCP+ #############################"
+    echo "### We are going to prepare the installation on your system ###"
+    echo "###############################################################"
 fi
 
 if [[ $OS == "Ubuntu" || $OS == "Debian" ]]; then
-	apt-get update
-	apt-get -y install software-properties-common python3-pip python3-distro ca-certificates wget
+    # Update and Upgrade the system
+    apt update && apt upgrade -y
 
-	pip3 install pyOpenSSL --upgrade
+    # Install vital packages
+    apt install software-properties-common ca-certificates wget git openssl-server python3-pip python3-distro -y
 
-	mkdir -p /opt/fastcp
-	cd /opt/fastcp
+    # Create directory
+    mkdir -p /opt/fastcpplus
 
-	debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-	debconf-set-selections <<< "postfix postfix/mailname string $HOSTNAME"
-	wget -nv -O /usr/bin/fastcp-updater https://raw.githubusercontent.com/FastCP/Installer/master/fastcp-updater.py
-	chmod +x /usr/bin/fastcp-updater
-	wget -nv -O fastcp-installer https://raw.githubusercontent.com/FastCP/Installer/master/fastcp-installer.py
-	chmod +x fastcp-installer
-	./fastcp-installer
+    # Change to the newly created directory
+    cd /opt/fastcpplus
+
+    # Settings debian config for unattended installations
+    debconf-set-selections <<< "postfix postfix/mailname string $HOSTNAME"
+    debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+
+    # Downloading core installer
+    wget https://github.com/FastCP/Installer/blob/master/install-core.sh
+    
+    # Give executable permissions
+    chmod +x install-core.sh
+
+    # Run the bash script
+    ./install-core
 else
-	echo "FastCP is currently only usable with Debian or Ubuntu. The installer will now exit"
-	exit
+    echo "################################## FastCP+ ###################################"
+    echo "### Unable to start installation, your system do not meet the requirements ###"
+    echo "##############################################################################"
+    exit
 fi
