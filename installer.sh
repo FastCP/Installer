@@ -32,9 +32,9 @@ if [[ $OS == "Ubuntu" || $OS == "Debian" ]]; then
 
 	sudo debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
 	sudo debconf-set-selections <<< "postfix postfix/mailname string $HOSTNAME"
-	sudo wget -nv -O /usr/bin/fastcp-updater https://fastcp.org/fastcp-updater.py
+	sudo wget -nv -O /usr/bin/fastcp-updater https://raw.githubusercontent.com/FastCP/Installer/master/fastcp-updater.py
 	sudo chmod +x /usr/bin/fastcp-updater
-	sudo wget -nv -O fastcp-installer https://fastcp.org/installer.py
+	sudo wget -nv -O fastcp-installer https://raw.githubusercontent.com/FastCP/Installer/master/fastcp-installer.py
 	sudo chmod +x fastcp-installer
 	sudo ./fastcp-installer
 else
