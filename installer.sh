@@ -12,19 +12,6 @@
 ##################################################################################################
 
 echo "### Welcome to the FastCP+ install ###"
-echo "Please enter your Hostname of desire:" 
-
-read HOSTNAME
-
-if [ "$HOSTNAME" == "" ]; 
-	then
-		HOSTNAME=`uname -n`
-fi
-
-echo "Your Hostname of desire is now set to $HOSTNAME"
-
-# Getting first variable from the operation system
-OS=`lsb_release -d | awk -F"\t" '{print $2}' | awk -F" " '{print $1}'`
 
 # Check if the script is executed as root
 if [ "$EUID" -ne 0 ]; 
@@ -39,12 +26,29 @@ else
     echo "###############################################################"
 fi
 
+echo "Please enter your Hostname of desire:" 
+
+read HOSTNAME
+
+if [ "$HOSTNAME" == "" ]; 
+	then
+		HOSTNAME=`uname -n`
+fi
+
+# Changing your Hostname to desired one
+hostnamectl set-hostname $HOSTNAME
+
+echo "Your Hostname of desire is now set to `uname -n`"
+
+# Getting first variable from the operation system
+OS=`lsb_release -d | awk -F"\t" '{print $2}' | awk -F" " '{print $1}'`
+
 if [[ $OS == "Ubuntu" || $OS == "Debian" ]]; then
     # Update and Upgrade the system
     apt update && apt upgrade -y
 
     # Install vital packages
-    apt install software-properties-common ca-certificates wget git openssl-server python3-pip python3-distro -y
+    apt install software-properties-common ca-certificates wget git openssl python3-pip python3-distro -y
 
     # Create directory
     mkdir -p /opt/fastcpplus
@@ -57,9 +61,23 @@ if [[ $OS == "Ubuntu" || $OS == "Debian" ]]; then
     debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
 
     # Downloading core installer
-    wget https://github.com/FastCP/Installer/blob/master/install-core.sh
-    
+    CORE_INSTALLER_FILE=install-core.sh
+    WGET_CORE_INSTALL=https://github.com/FastCP/Installer/blob/master/install-core.sh
+    if [ -f $CORE_INSTALLER_FILE ]; 
+        then
+            echo "######################################"
+            echo "### Core installer is already here ###"
+            echo "######################################"
+        else
+            echo "##################################"
+            echo "### Downloading core installer ###"
+            echo "##################################"
+            loading
+            wget https://github.com/FastCP/Installer/blob/master/install-core.sh
+    fi
+
     # Give executable permissions
+    echo "### Changing permissions install-core.sh"
     chmod +x install-core.sh
 
     # Run the bash script
